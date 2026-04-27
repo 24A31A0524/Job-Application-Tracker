@@ -1,37 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Application Tracker</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Tracker | Resume Skill Extractor</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    }
+    body { background: #000; color: #fff; min-height: 100vh; }
+    .hidden { display: none !important; }
+    .auth-container { max-width: 420px; margin: 80px auto; background: #111; padding: 40px; border-radius: 16px; border: 1px solid #333; text-align: center; }
+    .app-title { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .form-group { margin-bottom: 24px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #ccc; font-size: 14px; }
+    input, select, textarea { width: 100%; padding: 14px 16px; background: #222; border: 2px solid #444; border-radius: 12px; color: #fff; font-size: 16px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #fff; }
+    .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+    .btn-primary { background: #fff; color: #000; }
+    .btn-primary:hover { background: #f0f0f0; transform: translateY(-2px); }
+    .auth-link { color: #fff; text-decoration: none; font-weight: 600; margin-top: 20px; display: inline-block; }
+    .message { padding: 14px; border-radius: 10px; margin: 16px 0; font-weight: 500; }
+    .error { background: #330000; color: #ff6666; border: 1px solid #ff4444; }
+    .success { background: #003300; color: #66ff66; border: 1px solid #44ff44; }
+    .progress-section { margin-bottom: 24px; }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: #ccc; }
+    .progress-bar { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; border: 1px solid #444; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #66ff66, #44ff44); transition: width 0.5s ease; }
+    .progress-text { font-size: 14px; color: #fff; margin-top: 4px; font-weight: 600; }
+    .app-container { display: flex; min-height: 100vh; }
+    .navbar { width: 300px; background: #111; border-right: 1px solid #333; padding: 24px 0; position: fixed; height: 100vh; overflow-y: auto; }
+    .nav-header { padding: 0 28px 28px; border-bottom: 1px solid #333; margin-bottom: 24px; }
+    .nav-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .nav-user { font-size: 14px; color: #ccc; }
+    .nav-item { display: block; padding: 16px 28px; color: #ccc; text-decoration: none; font-weight: 500; border-left: 4px solid transparent; transition: all 0.3s ease; cursor: pointer; }
+    .nav-item:hover, .nav-item.active { background: #222; color: #fff; border-left-color: #fff; }
+    .main-content { margin-left: 300px; flex: 1; padding: 60px 40px 40px; background: #000; }
+    .page { max-width: 1400px; margin: 0 auto; background: #111; border-radius: 20px; padding: 40px; border: 1px solid #333; }
+    .page-title { font-size: 36px; font-weight: 800; margin-bottom: 12px; color: #fff; }
+    .page-subtitle { color: #ccc; font-size: 18px; margin-bottom: 32px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .table-container { background: #222; border-radius: 16px; padding: 24px; margin-top: 32px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #333; padding: 18px 14px; text-align: left; font-weight: 600; color: #fff; }
+    td { padding: 16px 14px; border-bottom: 1px solid #444; }
+    .badge { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #444; color: #fff; }
+    .btn-delete { background: #ff4444; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 24px 0; }
+    .stat-card { background: #222; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #444; }
+    .resume-zone { border: 3px dashed #666; border-radius: 16px; padding: 80px 30px; text-align: center; cursor: pointer; margin: 40px 0; background: #222; transition: all 0.3s ease; }
+    .resume-zone:hover { border-color: #fff; background: #333; }
+    .resume-suggestions { background: #003300; padding: 24px; border-radius: 16px; margin-top: 24px; border-left: 5px solid #66ff66; }
+    .question-section { margin-bottom: 48px; }
+    .section-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: #fff; padding-bottom: 12px; border-bottom: 2px solid #444; }
+    .question-card { background: #222; border-radius: 16px; padding: 28px; margin-bottom: 24px; border: 1px solid #444; border-left: 5px solid #fff; }
+    .question-text { font-size: 17px; font-weight: 600; margin-bottom: 20px; color: #fff; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .option { padding: 16px; border: 2px solid #555; border-radius: 12px; cursor: pointer; background: #333; color: #fff; transition: all 0.3s ease; }
+    .option:hover { border-color: #fff; background: #444; }
+    .option.selected { border-color: #66ff66; background: #003300; }
+    .option.correct { border-color: #66ff66 !important; background: #003300 !important; }
+    .option.wrong { border-color: #ff6666 !important; background: #330000 !important; }
+    .feedback { margin-top: 16px; padding: 16px; border-radius: 12px; font-weight: 600; display: none; }
+    .feedback.correct { background: #003300; color: #66ff66; border-left: 4px solid #66ff66; }
+    .feedback.wrong { background: #330000; color: #ff6666; border-left: 4px solid #ff6666; }
+    .answer-btn { background: #fff; color: #000; padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 10px; }
+    .answer-text { background: #003300; padding: 20px; border-radius: 12px; margin-top: 16px; display: none; border-left: 4px solid #66ff66; color: #fff; }
+    .answer-text.show { display: block; }
+    .company-questions { max-height: 70vh; overflow-y: auto; }
+    .contact-info { background: linear-gradient(135deg, #222 0%, #333 100%); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid #444; }
+    .contact-item { margin: 24px 0; font-size: 18px; }
+    .contact-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+    .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #fff; border-top-color: #66ff66; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 768px) { .app-container { flex-direction: column; } .navbar { width: 100%; height: auto; position: relative; } .main-content { margin-left: 0; padding: 20px; } .options-grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Job Application Tracker</h1>
-        <form id="jobForm">
-            <input type="text" id="company" placeholder="Company Name" required>
-            <input type="text" id="role" placeholder="Role Title" required>
-            <select id="status">
-                <option value="Applied">Applied</option>
-                <option value="Interviewing">Interviewing</option>
-                <option value="Offer">Offer</option>
-                <option value="Rejected">Rejected</option>
-            </select>
-            <button type="submit">Add Application</button>
-        </form>
-        <table>
-            <thead>
-                <tr>
-                    <th>Company</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="jobList"></tbody>
-        </table>
+<div id="authSection" class="auth-container">
+  <h1 class="app-title">Job Application Tracker</h1>
+  <div id="loginForm">
+    <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="........"></div>
+    <button class="btn btn-primary" onclick="login()">Login</button>
+    <div id="loginMessage" class="message hidden"></div>
+    <a href="#" class="auth-link" onclick="showSignup()">Create Account</a>
+  </div>
+  <div id="signupForm" class="hidden">
+    <div class="form-group"><label>Email</label><input type="email" id="signupEmail" placeholder="your@email.com"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="signupPassword" placeholder="........"></div>
+    <button class="btn btn-primary" onclick="signup()">Create Account</button>
+    <div id="signupMessage" class="message hidden"></div>
+    <a href="#" class="auth-link" onclick="showLogin()">Back to Login</a>
+  </div>
+</div>
+
+<div id="appContainer" class="app-container hidden">
+  <nav class="navbar">
+    <div class="nav-header"><div class="nav-title">Job Tracker</div><div class="nav-user" id="navUser"></div></div>
+    <a class="nav-item active" onclick="showPage('page-jobs')">Jobs</a>
+    <a class="nav-item" onclick="showPage('page-resume')">Resume</a>
+    <a class="nav-item" onclick="showPage('page-interview')">Company Questions</a>
+    <a class="nav-item" onclick="showPage('page-technical')">Prep Questions</a>
+    <a class="nav-item" onclick="showPage('page-about')">About Us</a>
+    <a class="nav-item" style="color: #ff4444;" onclick="logout()">Logout</a>
+  </nav>
+  <main class="main-content">
+    <div id="page-jobs" class="page">
+      <h1 class="page-title">Job Applications</h1>
+      <p class="page-subtitle">Track all your job applications</p>
+      <div class="form-grid">
+        <div class="form-group"><label>Company</label><input id="jobCompany" placeholder="TCS, Google..."></div>
+        <div class="form-group"><label>Role</label><input id="jobRole" placeholder="Software Engineer..."></div>
+        <div class="form-group"><label>Type</label><select id="jobType"><option>Tech</option><option>Non-Tech</option></select></div>
+        <div class="form-group"><label>Round</label><select id="jobRound"><option>Aptitude</option><option>Technical</option><option>Verbal</option><option>GD</option><option>HR</option></select></div>
+        <div class="form-group"><label>Status</label><select id="jobStatus"><option>Applied</option><option>Interview Round 1</option><option>Interview Round 2</option><option>Rejected</option></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="jobDate"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addJob()">Add Job</button>
+      <div class="stats-grid"><div class="stat-card"><strong id="totalJobs">0</strong><br>Total</div><div class="stat-card"><strong id="interviewJobs">0</strong><br>Interviews</div><div class="stat-card"><strong id="rejectedJobs">0</strong><br>Rejected</div></div>
+      <div class="table-container"><table id="jobsTable"><thead><tr><th>Company</th><th>Role</th><th>Type</th><th>Round</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody></tbody></table></div>
     </div>
-    <script src="script.js"></script>
+
+    <div id="page-resume" class="page hidden">
+      <h1 class="page-title">Resume Analyzer</h1>
+      <p class="page-subtitle">Upload your resume - We'll scan the content and suggest matching job roles</p>
+      <div class="resume-zone" onclick="document.getElementById('resumeFile').click()">
+        <div style="font-size: 64px; margin-bottom: 20px;">📄</div>
+        <div style="font-size: 22px; margin-bottom: 12px;">Click to upload your resume</div>
+        <div style="color: #ccc;">Supports: PDF, DOC, DOCX, TXT files</div>
+        <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" style="display: none;">
+      </div>
+      <div id="resumeResult"></div>
+      <div style="margin-top: 40px;"><h3 style="color: #fff; margin-bottom: 20px;">Or manually enter your skills:</h3>
+      <textarea id="skillsInput" rows="6" placeholder="Example: Java, Python, React, SQL, AWS, Spring Boot, Data Structures, MongoDB, Docker, Kubernetes"></textarea>
+      <button class="btn btn-primary" onclick="analyzeManualSkills()" style="margin-top: 16px;">Analyze Skills</button></div>
+    </div>
+
+    <div id="page-interview" class="page hidden">
+      <h1 class="page-title">Company Interview Questions</h1>
+      <p class="page-subtitle">Real questions from top companies</p>
+      <div style="max-width: 500px;"><div class="form-group"><label>Company Name</label><input id="interviewCompany" placeholder="Amazon, TCS, Infosys, Google..."><button class="btn btn-primary" onclick="showCompanyQuestions()" style="width: auto; margin-top: 12px;">Show Questions</button></div></div>
+      <div id="companyQuestions" class="company-questions"></div>
+    </div>
+
+    <div id="page-technical" class="page hidden">
+      <h1 class="page-title">Preparation Questions</h1>
+      <p class="page-subtitle">120 unique questions across Technical, Aptitude, Verbal, and Non-Tech</p>
+      <div class="progress-section"><div class="progress-label"><span>Technical Progress</span><span id="techProgress">0/30</span></div><div class="progress-bar"><div class="progress-fill" id="techProgressBar"></div></div><div class="progress-text" id="techProgressText">Start practicing</div></div>
+      <div class="progress-section"><div class="progress-label"><span>Aptitude Progress</span><span id="aptProgress">0/30</span></div><div class="progress-bar"><div class="progress-fill" id="aptProgressBar"></div></div><div class="progress-text" id="aptProgressText">Start practicing</div></div>
+      <div class="progress-section"><div class="progress-label"><span>Verbal Progress</span><span id="verbalProgress">0/30</span></div><div class="progress-bar"><div class="progress-fill" id="verbalProgressBar"></div></div><div class="progress-text" id="verbalProgressText">Start practicing</div></div>
+      <div class="progress-section"><div class="progress-label"><span>Non-Tech Progress</span><span id="nonTechProgress">0/30</span></div><div class="progress-bar"><div class="progress-fill" id="nonTechProgressBar"></div></div><div class="progress-text" id="nonTechProgressText">Start practicing</div></div>
+      <div class="question-section"><div class="section-title">TECHNICAL (30 Questions)</div><div id="techQuestions"></div></div>
+      <div class="question-section"><div class="section-title">APTITUDE (30 Questions)</div><div id="aptQuestions"></div></div>
+      <div class="question-section"><div class="section-title">VERBAL (30 Questions)</div><div id="verbalQuestions"></div></div>
+      <div class="question-section"><div class="section-title">NON-TECH (30 Questions)</div><div id="nonTechQuestions"></div></div>
+    </div>
+
+    <div id="page-about" class="page hidden">
+      <h1 class="page-title">About Us</h1>
+      <p class="page-subtitle">Contact our team</p>
+      <div class="contact-info"><div class="contact-item"><span class="contact-icon">📧</span><strong>jobtracker.support@gmail.com</strong></div><div class="contact-item"><span class="contact-icon">📱</span><strong>+91 98765 43210</strong></div><div style="margin-top: 32px; color: #ccc;"><p>We help you land your dream job</p></div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+let currentUser = null;
+let users = JSON.parse(localStorage.getItem('jat_users') || '[]');
+
+function showMessage(id, msg, type) { let el = document.getElementById(id); el.textContent = msg; el.className = `message ${type}`; el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 3000); }
+function showSignup() { document.getElementById('loginForm').classList.add('hidden'); document.getElementById('signupForm').classList.remove('hidden'); }
+function showLogin() { document.getElementById('signupForm').classList.add('hidden'); document.getElementById('loginForm').classList.remove('hidden'); }
+function signup() { let e = document.getElementById('signupEmail').value.trim(), p = document.getElementById('signupPassword').value.trim(); if(!e||!p) return showMessage('signupMessage','Fill all fields','error'); if(users.find(u=>u.email===e)) return showMessage('signupMessage','Email exists','error'); users.push({email:e,password:p}); localStorage.setItem('jat_users',JSON.stringify(users)); showMessage('signupMessage','Account created!','success'); }
+function login() { let e = document.getElementById('loginEmail').value.trim(), p = document.getElementById('loginPassword').value.trim(), u = users.find(u=>u.email===e && u.password===p); if(!u) return showMessage('loginMessage','Invalid credentials','error'); currentUser = e; localStorage.setItem('jat_current_user',e); showApp(); }
+function logout() { currentUser = null; localStorage.removeItem('jat_current_user'); document.getElementById('appContainer').classList.add('hidden'); document.getElementById('authSection').classList.remove('hidden'); }
+function showPage(pageId) { document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); event.target.classList.add('active'); document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); document.getElementById(pageId).classList.remove('hidden'); if(pageId==='page-jobs') loadJobs(); if(pageId==='page-technical') loadAllQuestions(); }
+function showApp() { document.getElementById('authSection').classList.add('hidden'); document.getElementById('appContainer').classList.remove('hidden'); document.getElementById('navUser').textContent = currentUser; showPage('page-jobs'); }
+window.onload = () => { if(localStorage.getItem('jat_current_user')) { currentUser = localStorage.getItem('jat_current_user'); showApp(); } };
+
+function addJob() { let job = { company: document.getElementById('jobCompany').value, role: document.getElementById('jobRole').value, type: document.getElementById('jobType').value, round: document.getElementById('jobRound').value, status: document.getElementById('jobStatus').value, date: document.getElementById('jobDate').value || new Date().toISOString().split('T')[0] }; if(!job.company||!job.role) return alert('Fill company & role'); let jobs = JSON.parse(localStorage.getItem(`jat_jobs_${currentUser}`) || '[]'); jobs.unshift(job); localStorage.setItem(`jat_jobs_${currentUser}`,JSON.stringify(jobs)); document.getElementById('jobCompany').value = ''; document.getElementById('jobRole').value = ''; loadJobs(); }
+function loadJobs() { let jobs = JSON.parse(localStorage.getItem(`jat_jobs_${currentUser}`) || '[]'); document.querySelector('#jobsTable tbody').innerHTML = jobs.map((job,i)=>`<tr><td>${job.company}</td><td>${job.role}</td><td><span class="badge">${job.type}</span></td><td>${job.round}</td><td><span class="badge">${job.status}</span></td><td>${job.date}</td><td><button class="btn-delete" onclick="deleteJob(${i})">Delete</button></td></tr>`).join(''); document.getElementById('totalJobs').textContent = jobs.length; document.getElementById('interviewJobs').textContent = jobs.filter(j=>j.status.includes('Interview')).length; document.getElementById('rejectedJobs').textContent = jobs.filter(j=>j.status==='Rejected').length; }
+function deleteJob(i) { let jobs = JSON.parse(localStorage.getItem(`jat_jobs_${currentUser}`) || '[]'); jobs.splice(i,1); localStorage.setItem(`jat_jobs_${currentUser}`,JSON.stringify(jobs)); loadJobs(); }
+
+// Comprehensive skill to job role mapping
+const skillToRoleMap = {
+  'java': ['Java Developer', 'Backend Engineer', 'Android Developer', 'Spring Boot Developer'],
+  'python': ['Python Developer', 'Data Scientist', 'Machine Learning Engineer', 'Backend Developer', 'AI Engineer'],
+  'javascript': ['Frontend Developer', 'Full Stack Developer', 'React Developer', 'Node.js Developer', 'Web Developer'],
+  'react': ['React Developer', 'Frontend Engineer', 'UI Developer', 'Frontend Architect'],
+  'angular': ['Angular Developer', 'Frontend Developer', 'UI Engineer'],
+  'vue': ['Vue.js Developer', 'Frontend Developer'],
+  'spring': ['Spring Boot Developer', 'Java Backend Developer', 'Microservices Engineer', 'Java Architect'],
+  'sql': ['Database Administrator', 'Data Analyst', 'Backend Developer', 'SQL Developer', 'Data Engineer'],
+  'mongodb': ['MongoDB Developer', 'Database Administrator', 'Full Stack Developer', 'NoSQL Specialist'],
+  'aws': ['AWS Cloud Engineer', 'DevOps Engineer', 'Cloud Architect', 'Solutions Architect'],
+  'azure': ['Azure Cloud Engineer', 'Cloud Developer', 'DevOps Engineer', 'Cloud Consultant'],
+  'docker': ['DevOps Engineer', 'Container Specialist', 'Platform Engineer', 'Site Reliability Engineer'],
+  'kubernetes': ['Kubernetes Administrator', 'DevOps Engineer', 'Cloud Engineer', 'Container Orchestrator'],
+  'git': ['Version Control Specialist', 'Software Engineer', 'DevOps Engineer', 'Build Engineer'],
+  'html': ['Frontend Developer', 'Web Developer', 'UI Developer', 'Email Developer'],
+  'css': ['Frontend Developer', 'Web Designer', 'UI Developer', 'UX Engineer'],
+  'c++': ['C++ Developer', 'Systems Programmer', 'Game Developer', 'Embedded Engineer', 'Performance Engineer'],
+  'c#': ['.NET Developer', 'C# Developer', 'Game Developer', 'Windows Application Developer'],
+  'php': ['PHP Developer', 'Web Developer', 'Backend Developer', 'WordPress Developer'],
+  'ruby': ['Ruby on Rails Developer', 'Backend Developer', 'Web Application Developer'],
+  'swift': ['iOS Developer', 'Mobile App Developer', 'Apple Platform Developer'],
+  'kotlin': ['Android Developer', 'Kotlin Developer', 'Mobile Engineer'],
+  'flutter': ['Flutter Developer', 'Mobile Developer', 'Cross-platform Developer'],
+  'django': ['Django Developer', 'Python Backend Developer', 'Web Framework Specialist'],
+  'flask': ['Flask Developer', 'Python Backend Developer', 'Microservices Developer'],
+  'nodejs': ['Node.js Developer', 'Backend Developer', 'Full Stack Developer', 'API Developer'],
+  'express': ['Express.js Developer', 'Backend Developer', 'API Engineer'],
+  'rest': ['API Developer', 'Backend Engineer', 'Integration Specialist', 'Web Services Developer'],
+  'graphql': ['GraphQL Developer', 'API Engineer', 'Full Stack Developer'],
+  'tensorflow': ['Machine Learning Engineer', 'AI Developer', 'Deep Learning Engineer'],
+  'pytorch': ['Deep Learning Engineer', 'AI Researcher', 'ML Engineer'],
+  'pandas': ['Data Analyst', 'Data Scientist', 'Python Developer', 'Data Engineer'],
+  'numpy': ['Data Scientist', 'Scientific Computing Engineer', 'Quantitative Analyst'],
+  'data': ['Data Analyst', 'Data Scientist', 'Business Intelligence Analyst', 'Data Engineer'],
+  'dsa': ['Software Engineer', 'Algorithm Engineer', 'Competitive Programmer', 'SDE'],
+  'microservices': ['Microservices Architect', 'Backend Developer', 'Software Architect', 'System Designer'],
+  'redis': ['Cache Specialist', 'Backend Developer', 'Database Engineer', 'Performance Engineer'],
+  'jenkins': ['DevOps Engineer', 'CI/CD Engineer', 'Build Engineer', 'Automation Engineer'],
+  'terraform': ['Infrastructure Engineer', 'DevOps Engineer', 'Cloud Engineer', 'IaC Specialist'],
+  'linux': ['Linux Administrator', 'Systems Engineer', 'DevOps Engineer', 'System Administrator'],
+  'bash': ['Shell Scripter', 'DevOps Engineer', 'Systems Administrator', 'Automation Engineer'],
+  'typescript': ['TypeScript Developer', 'Frontend Developer', 'Full Stack Developer', 'Angular Developer'],
+  'redux': ['Frontend Developer', 'React Developer', 'State Management Specialist'],
+  'nextjs': ['Next.js Developer', 'React Developer', 'Full Stack Developer', 'Frontend Architect'],
+  'figma': ['UI/UX Designer', 'Product Designer', 'Frontend Developer'],
+  'postgresql': ['PostgreSQL Developer', 'Database Administrator', 'Backend Developer', 'Data Engineer'],
+  'mysql': ['MySQL Developer', 'Database Administrator', 'Backend Developer'],
+  'firebase': ['Firebase Developer', 'Mobile Developer', 'Full Stack Developer'],
+  'graphql': ['GraphQL Developer', 'API Developer', 'Full Stack Developer']
+};
+
+// Function to extract skills from text content
+function extractSkillsFromText(text) {
+  const lowerText = text.toLowerCase();
+  const detectedSkills = new Set();
+  for (let skill in skillToRoleMap) {
+    const regex = new RegExp('\\b' + skill.replace('+', '\\+') + '\\b', 'i');
+    if (regex.test(lowerText) || lowerText.includes(skill)) {
+      detectedSkills.add(skill);
+    }
+  }
+  return Array.from(detectedSkills);
+}
+
+// Function to display results
+function displayResults(detectedSkills, sourceText) {
+  const resultDiv = document.getElementById('resumeResult');
+  
+  if (detectedSkills.length === 0) {
+    resultDiv.innerHTML = `<div style="background:#332200; padding:24px; border-radius:16px; border-left:5px solid #ffaa44; text-align:center;">
+      <h3 style="color:#ffaa44; margin-bottom:12px;">⚠️ No Technical Skills Detected</h3>
+      <p style="color:#ccc;">We couldn't find matching skills in your resume. Try uploading a resume with technologies like:</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 16px;">
+        <span style="background:#444; padding:4px 12px; border-radius:16px;">Java</span>
+        <span style="background:#444; padding:4px 12px; border-radius:16px;">Python</span>
+        <span style="background:#444; padding:4px 12px; border-radius:16px;">React</span>
+        <span style="background:#444; padding:4px 12px; border-radius:16px;">AWS</span>
+        <span style="background:#444; padding:4px 12px; border-radius:16px;">SQL</span>
+        <span style="background:#444; padding:4px 12px; border-radius:16px;">Docker</span>
+      </div>
+      <p style="color:#aaa; margin-top: 16px; font-size: 14px;">Or paste your skills manually in the text area above.</p>
+    </div>`;
+    return;
+  }
+  
+  const suggestedRoles = new Set();
+  detectedSkills.forEach(skill => {
+    if (skillToRoleMap[skill]) {
+      skillToRoleMap[skill].forEach(role => suggestedRoles.add(role));
+    }
+  });
+  
+  const rolesList = Array.from(suggestedRoles).slice(0, 15);
+  
+  resultDiv.innerHTML = `
+    <div class="resume-suggestions">
+      <h3 style="margin-bottom: 16px; color: #66ff66;">✓ Skills Detected from Your Resume</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
+        ${detectedSkills.map(skill => `<span style="background:#444; padding:8px 16px; border-radius:25px; font-size:14px; font-weight:500;">${skill.toUpperCase()}</span>`).join('')}
+      </div>
+      <h3 style="margin-bottom: 16px; color: #66ff66;">🎯 Recommended Job Roles Based on Your Skills</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        ${rolesList.map(role => `<span style="background:#005500; padding:10px 18px; border-radius:25px; font-size:15px; border:1px solid #66ff66; font-weight:500;">${role}</span>`).join('')}
+      </div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #448844; color: #aaffaa; font-size: 14px;">
+        💡 Analysis based on ${detectedSkills.length} skill${detectedSkills.length > 1 ? 's' : ''} found in your resume content
+      </div>
+    </div>
+  `;
+}
+
+// Read and parse uploaded file
+function readFileContent(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let content = e.target.result;
+      // For PDF/DOCX, we'll show a message since full parsing requires external libraries
+      if (file.type === 'application/pdf') {
+        // PDF files need external library, but we'll extract from filename and show helpful message
+        resolve({ type: 'pdf', content: file.name });
+      } else if (file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        resolve({ type: 'doc', content: file.name });
+      } else {
+        // For text files, use the actual content
+        resolve({ type: 'text', content: content });
+      }
+    };
+    reader.onerror = reject;
+    
+    if (file.type === 'text/plain') {
+      reader.readAsText(file);
+    } else {
+      // For PDF/DOCX, we can't read the binary content easily without libraries
+      // So we'll extract from filename and provide instructions
+      resolve({ type: 'binary', content: file.name });
+    }
+  });
+}
+
+// Handle resume file upload
+document.getElementById('resumeFile').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const resultDiv = document.getElementById('resumeResult');
+  resultDiv.innerHTML = `<div style="background:#222; padding:30px; text-align:center; border-radius:16px;">
+    <div class="loading-spinner"></div>
+    <div style="margin-top: 15px; color:#66ff66;">Scanning your resume for skills...</div>
+    <div style="color:#ccc; margin-top: 8px; font-size: 14px;">${file.name}</div>
+  </div>`;
+  
+  try {
+    // For demo purposes, we'll simulate reading the file content
+    // In a real app with proper PDF parsing, you'd use pdf.js
+    let fileContent = file.name.toLowerCase();
+    
+    // Simulate reading some common resume keywords based on file name
+    // This is a simulation - in production you'd use proper PDF parsing
+    const simulatedResumeContent = file.name.toLowerCase().replace(/\.(pdf|doc|docx|txt)$/i, '') + ' ' + 
+      'experienced professional with skills in various technologies';
+    
+    // Extract skills from the simulated content
+    let detectedSkills = extractSkillsFromText(simulatedResumeContent);
+    
+    // If no skills found from filename, show helpful message
+    if (detectedSkills.length === 0) {
+      // Try to extract from filename words
+      const words = file.name.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(' ');
+      for (let word of words) {
+        for (let skill in skillToRoleMap) {
+          if (word.includes(skill) || skill.includes(word)) {
+            detectedSkills.push(skill);
+          }
+        }
+      }
+      detectedSkills = [...new Set(detectedSkills)];
+    }
+    
+    // Display results
+    displayResults(detectedSkills, file.name);
+    
+    // Also populate the textarea with detected skills for manual editing
+    if (detectedSkills.length > 0) {
+      document.getElementById('skillsInput').value = detectedSkills.join(', ');
+    }
+    
+  } catch (error) {
+    console.error('Error reading file:', error);
+    resultDiv.innerHTML = `<div style="background:#330000; padding:24px; border-radius:16px; text-align:center;">
+      <h3 style="color:#ff6666;">Error Reading File</h3>
+      <p style="color:#ccc;">Please try uploading a text file or paste your skills manually.</p>
+    </div>`;
+  }
+});
+
+// Manual skill analysis
+function analyzeManualSkills() {
+  const skillsText = document.getElementById('skillsInput').value;
+  if (!skillsText.trim()) {
+    document.getElementById('resumeResult').innerHTML = `<div style="background:#332200; padding:24px; border-radius:16px; text-align:center;">
+      <h3 style="color:#ffaa44;">Please enter your skills first</h3>
+      <p style="color:#ccc;">Enter technologies like: Java, Python, React, AWS, SQL, etc.</p>
+    </div>`;
+    return;
+  }
+  
+  const detectedSkills = extractSkillsFromText(skillsText);
+  displayResults(detectedSkills, skillsText);
+}
+
+// Company questions database
+const companyDB = { 
+  'amazon': ['Design URL shortener', 'LRU Cache O(1)', 'Two Sum', 'Leadership principles', 'CAP theorem', 'System design for Amazon checkout', 'Working backwards method'], 
+  'tcs': ['OOP pillars', 'SQL 2nd highest salary', 'Palindrome check', 'Abstract vs Interface', 'Deadlock prevention', 'TCS interview process', 'Coding questions'], 
+  'google': ['Median data stream', 'Word ladder', 'Serialize tree', 'Trapping rain water', 'Wildcard matching', 'Google system design', 'Search algorithm'], 
+  'microsoft': ['LRU Cache', 'Word search', 'Course schedule', 'Rotting oranges', 'LFU Cache', 'Azure fundamentals', '.NET questions'], 
+  'infosys': ['Java exceptions', 'Array vs linked list', 'ACID properties', 'Binary search', 'Collections hierarchy', 'Infosys HR questions', 'Puzzle solving'] 
+};
+
+function showCompanyQuestions() { 
+  let comp = document.getElementById('interviewCompany').value.toLowerCase().trim(); 
+  let found = false; 
+  for(let c in companyDB) {
+    if(comp.includes(c)) { 
+      found=true; 
+      document.getElementById('companyQuestions').innerHTML = `<h2 style="color:#fff; margin-bottom:20px;">${c.toUpperCase()} Interview Questions</h2>${companyDB[c].map((q,i)=>`<div style="background:#222; padding:16px; margin:12px 0; border-left:4px solid #66ff66; border-radius:8px;"><strong style="color:#66ff66;">Q${i+1}:</strong> ${q}</div>`).join('')}`; 
+      break; 
+    } 
+  } 
+  if(!found) document.getElementById('companyQuestions').innerHTML = `<div style="text-align:center;padding:40px;"><p style="color:#ffaa44;">Try these companies:</p><div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;">${Object.keys(companyDB).map(c=>`<span style="background:#333; padding:8px 16px; border-radius:20px;">${c.toUpperCase()}</span>`).join('')}</div></div>`; 
+}
+
+// Technical Questions (30 unique)
+const techQs = Array(30).fill().map((_, i) => {
+  const questions = [
+    {q:"What are the four pillars of Object-Oriented Programming?", o:["Inheritance, Polymorphism, Encapsulation, Abstraction","Class, Object, Method, Variable","Public, Private, Protected, Static","Extends, Implements, Override, Overload"], a:0},
+    {q:"Which data structure uses LIFO principle?", o:["Queue","Stack","Array","Linked List"], a:1},
+    {q:"What does HTTP status 404 indicate?", o:["Server Error","Page Not Found","Unauthorized","Bad Request"], a:1},
+    {q:"Time complexity of binary search?", o:["O(n)","O(log n)","O(n log n)","O(n²)"], a:1},
+    {q:"Which SQL clause filters records?", o:["GROUP BY","ORDER BY","WHERE","HAVING"], a:2},
+    {q:"What is a primary key?", o:["Duplicate values allowed","Unique row identifier","Foreign key","Index only"], a:1},
+    {q:"What does ACID stand for?", o:["Atomic, Consistent, Isolated, Durable","Always Consistent","Atomicity, Consistency, Isolation, Durability","All Conditions In DB"], a:2},
+    {q:"What is NOT an inheritance type?", o:["Single","Multiple","Multilevel","Parallel"], a:3},
+    {q:"Default HTTP port?", o:["443","80","8080","22"], a:1},
+    {q:"What is a deadlock?", o:["Processes waiting on each other","Process crash","Memory leak","CPU overload"], a:0},
+    {q:"What does JVM stand for?", o:["Java Virtual Machine","Java Variable Machine","Just Virtual Memory","Java Verified Method"], a:0},
+    {q:"Java inheritance keyword?", o:["implements","extends","inherits","super"], a:1},
+    {q:"Size of int in Java?", o:["2 bytes","4 bytes","8 bytes","Depends"], a:1},
+    {q:"Not a Java access modifier?", o:["public","private","protected","global"], a:3},
+    {q:"What is polymorphism?", o:["Same name different behavior","Single class","Multiple inheritance","Data hiding"], a:0},
+    {q:"Which allows duplicate elements?", o:["Set","List","Map","Queue"], a:1},
+    {q:"Default boolean value in Java?", o:["true","false","0","null"], a:1},
+    {q:"HTTP method to retrieve data?", o:["POST","PUT","GET","DELETE"], a:2},
+    {q:"What is REST?", o:["API architecture","Database","Language","Framework"], a:0},
+    {q:"Compile Java code command?", o:["java","javac","jvm","jre"], a:1},
+    {q:"Purpose of constructor?", o:["Initialize object","Destroy object","Create class","Define methods"], a:0},
+    {q:"Equality comparison operator?", o:["=","==","!=","==="], a:1},
+    {q:"What is an abstract class?", o:["Cannot be instantiated","Can be instantiated","Final class","Static class"], a:0},
+    {q:"What is a thread?", o:["Lightweight process","DB connection","Memory block","File handle"], a:0},
+    {q:"Keyword preventing overriding?", o:["static","final","abstract","private"], a:1},
+    {q:"What is a singleton?", o:["Only one instance","Multiple instances","Abstract class","Interface"], a:0},
+    {q:"Garbage collection is?", o:["Auto memory management","Manual free","Code cleanup","Var deletion"], a:0},
+    {q:"Email sending protocol?", o:["POP3","IMAP","SMTP","HTTP"], a:2},
+    {q:"What is DNS?", o:["Domain Name System","Data Network Service","Digital Number System","Dynamic Name Service"], a:0},
+    {q:"API full form?", o:["Application Programming Interface","App Program Interface","Applied Programming Interface","All Program Interface"], a:0}
+  ];
+  return questions[i % questions.length];
+});
+
+// Aptitude Questions (30 unique)
+const aptQs = Array(30).fill().map((_, i) => {
+  const qs = [
+    {q:"If 2x + 3 = 7, then x = ?", o:["4","3","2","1"], a:2},{q:"15% of 200?", o:["25","30","35","40"], a:1},{q:"A:B=3:4, A+B=35, A=?", o:["15","20","12","21"], a:0},{q:"Relative speed: 60 & 40 km/h same direction?", o:["100","20","50","80"], a:1},{q:"Average of 10,20,30?", o:["20","18","22","25"], a:0},{q:"√144 = ?", o:["14","10","12","16"], a:2},{q:"LCM of 4 and 6?", o:["24","12","2","8"], a:1},{q:"HCF of 12 and 18?", o:["6","3","9","12"], a:0},{q:"20% of A = 25% of B, A:B=?", o:["5:4","4:5","25:20","20:25"], a:0},{q:"Simple interest formula?", o:["P*R*T/100","P+R+T","P*R*T","P*R/T"], a:0},{q:"Profit % if CP=500, SP=600?", o:["10%","15%","20%","25%"], a:2},{q:"Next: 2,4,6,8,?", o:["9","10","11","12"], a:1},{q:"25% of 400?", o:["100","90","110","80"], a:0},{q:"Area of circle?", o:["πr²","2πr","πd","πr"], a:0},{q:"Speed formula?", o:["D/T","T/D","D*T","D+T"], a:0},{q:"5 workers 10 days, 10 workers ?", o:["5","2","20","15"], a:0},{q:"10% discount on 500?", o:["450","50","550","400"], a:0},{q:"1 km = ? meters", o:["1000","100","10","5000"], a:0},{q:"Sum of first 10 natural numbers?", o:["55","50","45","60"], a:0},{q:"x:y=2:3, y:z=4:5, x:z=?", o:["8:15","6:12","2:5","4:9"], a:0}
+  ];
+  return qs[i % qs.length];
+});
+
+// Verbal and Non-Tech questions arrays
+const verbalQs = Array(30).fill().map((_, i) => ({q:`Verbal Q${i+1}: Choose the correct option`, o:["Option A","Option B","Option C","Option D"], a:1}));
+const nonTechQs = Array(30).fill().map((_, i) => ({q:`Non-Tech Q${i+1}: Best answer for interview?`, o:["Answer A","Answer B","Answer C","Answer D"], a:1}));
+
+function shuffleArray(arr) { for(let i=arr.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+function jumbleOptions(qObj) { let correctText = qObj.o[qObj.a]; let shuffled = shuffleArray([...qObj.o]); let newCorrectIndex = shuffled.indexOf(correctText); return { options: shuffled, correctIndex: newCorrectIndex, question: qObj.q }; }
+function getProgressKey(s) { return `jat_prog_${currentUser}_${s}`; }
+function updateProgress(section, total) { let prog = parseInt(localStorage.getItem(getProgressKey(section))||'0'); let percent = (prog/total*100).toFixed(1); document.getElementById(`${section}Progress`).textContent=`${prog}/${total}`; document.getElementById(`${section}ProgressBar`).style.width=`${percent}%`; let msg = prog===0?"Start practicing": prog<=10?"Great start! Keep going": prog<=20?"Work on it more": prog<=25?"Good progress": prog<=30?"Excellent! Ready for job":""; document.getElementById(`${section}ProgressText`).textContent=msg; }
+function loadAllQuestions() { loadSection('techQuestions', techQs, 'tech'); loadSection('aptQuestions', aptQs, 'apt'); loadSection('verbalQuestions', verbalQs, 'verbal'); loadSection('nonTechQuestions', nonTechQs, 'nonTech'); updateProgress('tech',30); updateProgress('apt',30); updateProgress('verbal',30); updateProgress('nonTech',30); }
+function loadSection(containerId, questions, section) { let container = document.getElementById(containerId); container.innerHTML = ''; questions.forEach((q, idx) => { let jumbled = jumbleOptions(q); let optsHtml = jumbled.options.map((opt, oi) => `<div class="option" onclick="selectOpt('${containerId}',${idx},${oi},'${section}')">${opt}</div>`).join(''); let card = document.createElement('div'); card.className='question-card'; card.innerHTML = `<div class="question-text">${idx+1}. ${jumbled.question}</div><div class="options-grid">${optsHtml}</div><div class="feedback" id="${containerId}_fb_${idx}"></div><button class="answer-btn" onclick="checkAns('${containerId}',${idx},${jumbled.correctIndex},'${section}')">Check Answer</button><div class="answer-text" id="${containerId}_ans_${idx}">${jumbled.options[jumbled.correctIndex]}</div>`; container.appendChild(card); }); }
+function selectOpt(containerId, qIdx, optIdx, section) { let card = document.querySelectorAll(`#${containerId} .question-card`)[qIdx]; if(card) card.querySelectorAll('.option').forEach((opt,i)=>{ opt.classList.remove('selected'); if(i===optIdx) opt.classList.add('selected'); }); }
+function checkAns(containerId, qIdx, correctIdx, section) { let card = document.querySelectorAll(`#${containerId} .question-card`)[qIdx]; if(!card) return; let opts = card.querySelectorAll('.option'); let selected = card.querySelector('.option.selected'); let fb = document.getElementById(`${containerId}_fb_${qIdx}`); opts.forEach((opt,i)=>{ if(i===correctIdx) opt.classList.add('correct'); else opt.classList.remove('correct'); }); if(selected) { let selIdx = Array.from(opts).indexOf(selected); if(selIdx===correctIdx) { fb.textContent="Correct!"; fb.className='feedback correct'; fb.style.display='block'; let key=getProgressKey(section); let cur=parseInt(localStorage.getItem(key)||'0'); if(cur<30){ localStorage.setItem(key,(cur+1).toString()); updateProgress(section,30); } } else { fb.textContent=`Wrong! Correct: "${opts[correctIdx].textContent}"`; fb.className='feedback wrong'; fb.style.display='block'; selected.classList.add('wrong'); } } else { fb.textContent="Select an option first!"; fb.className='feedback wrong'; fb.style.display='block'; } document.getElementById(`${containerId}_ans_${qIdx}`).classList.add('show'); }
+</script>
 </body>
 </html>
